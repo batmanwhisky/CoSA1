@@ -1,78 +1,103 @@
-const { GoogleAuth } = require('google-auth-library');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-exports.handler = async function(event, context) {
+// Whitelist allowed domains for proxying (add your allowed domains here)
+const ALLOWED_HOSTNAMES = [
+  'api.github.com',
+  'sheets.googleapis.com',
+  // Add more domains as needed
+];
+
+const TIMEOUT_MS = 15000; // Request timeout in milliseconds
+
+// Helper to check if a URL is allowed
+function isAllowed(urlStr) {
   try {
-    // Parse Google service account credentials from environment variable
-    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    if (!serviceAccountJson) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Missing GOOGLE_SERVICE_ACCOUNT_JSON environment variable." }),
-      };
-    }
-    const credentials = JSON.parse(serviceAccountJson);
+    const url = new URL(urlStr);
+    return ALLOWED_HOSTNAMES.includes(url.hostname);
+  } catch (e) {
+    return false;
+  }
+}
 
-    // Define scopes for Google Sheets API (update if you need different scopes)
-    const scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+// Helper for timeout
+function fetchWithTimeout(url, options, timeout = TIMEOUT_MS) {
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Proxy timeout')), timeout)),
+  ]);
+}
 
-    // Authenticate using google-auth-library
-    const auth = new GoogleAuth({
-      credentials,
-      scopes,
-    });
-    const client = await auth.getClient();
-    const accessToken = await client.getAccessToken();
-
-    // Parse the request body for parameters (spreadsheetId, range, etc.)
-    let params = {};
-    if (event.body) {
-      try {
-        params = JSON.parse(event.body);
-      } catch (e) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: "Invalid JSON in request body." }),
-        };
-      }
-    }
-
-    // Required parameters: spreadsheetId and range
-    const { spreadsheetId, range } = params;
-    if (!spreadsheetId || !range) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          error: "Please provide both 'spreadsheetId' and 'range' in the request body.",
-        }),
-      };
-    }
-
-    // Make the request to the Google Sheets API
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}`;
-    const apiResponse = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken.token || accessToken}`,
-      },
-    });
-
-    if (!apiResponse.ok) {
-      const errorText = await apiResponse.text();
-      return {
-        statusCode: apiResponse.status,
-        body: JSON.stringify({ error: errorText }),
-      };
-    }
-
-    const data = await apiResponse.json();
+exports.handler = async function(event) {
+  // Allow preflight CORS
+  if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
-      body: JSON.stringify(data),
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+      },
+      body: '',
     };
+  }
 
+  let body, url, method, headers;
+  try {
+    // For security, require POST and JSON body with { url, method, headers, body }
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, body: 'Method Not Allowed' };
+    }
+
+    body = JSON.parse(event.body || '{}');
+    url = body.url;
+    method = (body.method || 'GET').toUpperCase();
+    headers = body.headers || {};
+    const requestBody = body.body;
+
+    if (!url || !isAllowed(url)) {
+      return { statusCode: 400, body: 'Invalid or unauthorized target URL.' };
+    }
+
+    // Remove any headers that could be dangerous
+    delete headers['host'];
+    delete headers['x-forwarded-for'];
+    delete headers['x-real-ip'];
+
+    // Make proxied request
+    const resp = await fetchWithTimeout(url, {
+      method,
+      headers,
+      body: ['POST','PUT','PATCH'].includes(method) ? requestBody : undefined,
+    });
+
+    let respBody;
+    const contentType = resp.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      respBody = await resp.text(); // Don't double-encode JSON
+    } else {
+      respBody = await resp.text();
+    }
+
+    // Pass through CORS
+    return {
+      statusCode: resp.status,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        'content-type': contentType,
+      },
+      body: respBody,
+    };
   } catch (error) {
     return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({ error: error.message, stack: error.stack }),
     };
   }
