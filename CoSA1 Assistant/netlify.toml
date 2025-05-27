@@ -1,0 +1,5 @@
+[build]
+publish = "./"
+
+[functions]
+directory = "CoSA1/CoSA1 Assistant/netlify/"
