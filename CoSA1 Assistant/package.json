@@ -7,7 +7,19 @@
     "start": "netlify dev"
   },
   "dependencies": {
-    "google-auth-library": "^9.0.0",
+    "google-auth-library": "^9.15.1",
     "node-fetch": "^3.3.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/batmanwhisky/CoSA1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/batmanwhisky/CoSA1/issues"
+  },
+  "homepage": "https://github.com/batmanwhisky/CoSA1#readme"
 }
