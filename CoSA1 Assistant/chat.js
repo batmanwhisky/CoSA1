@@ -1,4 +1,4 @@
-const API_URL = "https://discoveryengine.googleapis.com/v1alpha/projects/310961014296/locations/global/collections/default_collection/engines/cosa1_1748271255057/servingConfigs/default_search:search";
+const API_URL = "/.netlify/functions/proxy";
 
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
