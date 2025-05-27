@@ -14,6 +14,7 @@
         <a href="#">Chat</a>
         <a href="#">Docs</a>
       </nav>
+      <button id="theme-toggle" title="Toggle dark/light mode">🌗</button>
     </header>
 
     <main>
@@ -25,12 +26,16 @@
         </p>
       </section>
       <section id="chat-section">
-        <h3>Chat with CoSA1</h3>
-        <div id="chat-container"></div>
+        <div class="chat-header-row">
+          <h3>Chat with CoSA1</h3>
+          <button id="clear-chat" title="Clear conversation">🗑 Clear</button>
+        </div>
+        <div id="chat-container" aria-live="polite"></div>
         <form id="chat-form" autocomplete="off">
-          <input type="text" id="chat-input" placeholder="Type your message..." required />
-          <button type="submit">Send</button>
+          <textarea id="chat-input" rows="1" placeholder="Type your message..." required></textarea>
+          <button type="submit" id="send-btn">Send</button>
         </form>
+        <div id="chat-loading" class="hidden"><div class="spinner"></div> Awaiting response...</div>
       </section>
     </main>
 
