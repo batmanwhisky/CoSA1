@@ -3,6 +3,8 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 // Whitelist allowed domains for proxying (add your allowed domains here)
 const ALLOWED_HOSTNAMES = [
   'api.github.com',
+  'cosa1.netlify.app',
+  '*.sanantonio.gov/*',
   'sheets.googleapis.com',
   // Add more domains as needed
 ];
