@@ -1,0 +1,10 @@
+{
+    "name": "cosa1-assistant",
+    "version": "1.0.0",
+    "description": "Netlify functions for CoSA1 Assistant chatbot",
+    "main": "netlify/functions/proxy.js",
+    "type": "commonjs",
+    "dependencies": {
+      "node-fetch": "^3.3.2"
+    }
+  }
