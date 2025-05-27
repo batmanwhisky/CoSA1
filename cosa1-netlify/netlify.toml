@@ -1,2 +1,2 @@
 [functions]
-  directory = "cosa1-netlify/netlify/functions"
+  directory = "netlify/functions"
