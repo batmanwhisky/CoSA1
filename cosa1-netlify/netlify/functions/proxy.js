@@ -1,3 +1,7 @@
+exports.handler = async function(event, context) {
+  return { statusCode: 200, body: "It works!" };
+};
+
 const { GoogleAuth } = require('google-auth-library');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
