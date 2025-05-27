@@ -80,7 +80,7 @@
     scrollToBottom();
   }
 
-  // Render a single message row
+  // Render a single message row (fixed to never append null nodes)
   function renderMessage(msg) {
     const row = document.createElement('div');
     row.className = 'chat-row ' + msg.sender;
@@ -101,9 +101,10 @@
     time.textContent = formatTime(msg.ts);
 
     bubble.appendChild(time);
-    row.appendChild(msg.sender === 'user' ? avatar : null);
+
+    if (msg.sender === 'user') row.appendChild(avatar);
     row.appendChild(bubble);
-    row.appendChild(msg.sender === 'bot' ? avatar : null);
+    if (msg.sender === 'bot') row.appendChild(avatar);
 
     chatContainer.appendChild(row);
   }
