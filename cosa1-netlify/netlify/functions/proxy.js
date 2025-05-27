@@ -49,7 +49,7 @@ exports.handler = async function(event, context) {
     }
 
     // Make the request to the Google Sheets API
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${1gLpcmFlQrT3WhWITkBHgAAspr3mh8661r1jGgzcIA4Q}/values/${encodeURIComponent(range)}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}`;
     const apiResponse = await fetch(url, {
       headers: {
         Authorization: `Bearer ${accessToken.token || accessToken}`,
