@@ -16,7 +16,16 @@
       </nav>
       <button id="theme-toggle" title="Toggle dark/light mode">🌗</button>
     </header>
+  <!-- Place the widget input and widget element where you want them to appear -->
+  <gen-search-widget
+    configId="a32b195f-cc2b-47b9-8cbf-984b7765722b"
+    triggerId="searchWidgetTrigger">
+  </gen-search-widget>
 
+  <input placeholder="Search here" id="searchWidgetTrigger" />
+
+  <!-- Widget JavaScript bundle (should be at the end of body for performance) -->
+  <script src="https://cloud.google.com/ai/gen-app-builder/client?hl=en_US"></script>
     <main>
       <section>
         <h2>Welcome to CoSA1!</h2>
