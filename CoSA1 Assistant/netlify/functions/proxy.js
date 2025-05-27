@@ -1,4 +1,5 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const { GoogleAuth } = require('google-auth-library');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
@@ -18,19 +19,33 @@ exports.handler = async (event, context) => {
     };
   }
 
-  const apiUrl = "https://discoveryengine.googleapis.com/v1alpha/projects/310961014296/locations/global/collections/default_collection/engines/cosa1_1748271255057/servingConfigs/default_search:search";
+  // Load credentials from Netlify environment variable
+  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON || "{}");
+
+  const auth = new GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+  });
 
   try {
+    const client = await auth.getClient();
+    const token = await client.getAccessToken();
+
+    const apiUrl = "https://discoveryengine.googleapis.com/v1alpha/projects/310961014296/locations/global/collections/default_collection/engines/cosa1_1748271255057/servingConfigs/default_search:search";
+
     const apiResp = await fetch(apiUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token.token || token}`,
+      },
       body: JSON.stringify(body),
     });
 
-    const data = await apiResp.json();
+    const data = await apiResp.text();
     return {
       statusCode: apiResp.status,
-      body: JSON.stringify(data),
+      body: data,
     };
   } catch (e) {
     return {
