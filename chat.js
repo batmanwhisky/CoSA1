@@ -163,7 +163,7 @@
         ts: m.ts
       }))
     };
-    const response = await fetch('/netlify/functions/proxy', {
+    const response = await fetch('https://cosa1.netlify.app/.netlify/functions/proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
