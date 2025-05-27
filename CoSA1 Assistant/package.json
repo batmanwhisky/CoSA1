@@ -1,18 +1,13 @@
 {
-  "dependencies": {
-    "google-auth-library": "^9.15.1",
-    "node-fetch": "^3.3.2"
-  },
-  "name": "derekvasquez",
+  "name": "cosa1-assistant",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Netlify serverless functions for CoSA1 Assistant",
+  "main": "netlify/functions/proxy.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "netlify dev"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {}
+  "dependencies": {
+    "google-auth-library": "^9.0.0",
+    "node-fetch": "^3.3.2"
+  }
 }
