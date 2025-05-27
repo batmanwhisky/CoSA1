@@ -2,4 +2,4 @@
 publish = "./"
 
 [functions]
-directory = "netlify/functions"
+directory = "CoSA1 Assistant/netlify/functions"
