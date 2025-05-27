@@ -140,7 +140,12 @@ code {
   transition: background 0.2s;
 }
 
-#chat-form button:hover {
+#chat-form button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+#chat-form button:hover:not(:disabled) {
   background: var(--primary);
 }
 
