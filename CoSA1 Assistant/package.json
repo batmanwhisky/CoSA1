@@ -2,7 +2,7 @@
   "name": "cosa1-assistant",
   "version": "1.0.0",
   "description": "Netlify serverless functions for CoSA1 Assistant",
-  "main": "netlify/functions/proxy.js",
+  "main": "CoSA1/Cosa Assistant/Netlify/functions/proxy.js",
   "scripts": {
     "start": "netlify dev"
   },
