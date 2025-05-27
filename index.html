@@ -1,46 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>CoSA1 App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Chatbot</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="chat-container">
     <header>
-      <h1>CoSA1</h1>
-      <nav>
-        <a href="#">Home</a>
-        <a href="#">About</a>
-        <a href="#">Docs</a>
-      </nav>
+      <h1>Chatbot</h1>
     </header>
-
-    <main>
-      <section>
-        <h2>Welcome to CoSA1!</h2>
-        <p>
-          This is a clean, modern starter site deployed on Netlify.<br>
-          You can update <code>styles.css</code> at any time to change the look and feel.
-        </p>
-      </section>
-      <section>
-        <h3>API Endpoint</h3>
-        <code>/.netlify/functions/proxy</code>
-        <p>
-          To test your Google Sheets proxy function, POST to:<br/>
-          <code>https://cosa1.netlify.app/.netlify/functions/proxy</code>
-        </p>
-        <p>
-          Example JSON:<br>
-          <code>{ "spreadsheetId": "your-sheet-id", "range": "Sheet1!A1:D10" }</code>
-        </p>
-      </section>
+    <main id="chat-window">
+      <!-- Messages will appear here -->
     </main>
-
-    <footer>
-      <small>© 2025 CoSA1 | Powered by Netlify</small>
-    </footer>
-    <script src="script.js"></script>
-  </body>
+    <form id="chat-form" autocomplete="off">
+      <input type="text" id="user-input" placeholder="Type your message..." required autofocus>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <script src="chat.js"></script>
+</body>
 </html>
