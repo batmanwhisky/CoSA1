@@ -1,32 +1,49 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-// Whitelist allowed domains for proxying (add your allowed domains here)
 const ALLOWED_HOSTNAMES = [
   'api.github.com',
   'cosa1.netlify.app',
-  '*.sanantonio.gov/*',
   'sheets.googleapis.com',
+  'sanantonio.gov',
   // Add more domains as needed
 ];
 
-const TIMEOUT_MS = 15000; // Request timeout in milliseconds
+// For wildcard support like *.sanantonio.gov
+const ALLOWED_HOSTNAME_PATTERNS = [
+  /\.sanantonio\.gov$/,
+];
 
-// Helper to check if a URL is allowed
+const TIMEOUT_MS = 15000;
+
 function isAllowed(urlStr) {
   try {
     const url = new URL(urlStr);
-    return ALLOWED_HOSTNAMES.includes(url.hostname);
+    // Direct match
+    if (ALLOWED_HOSTNAMES.includes(url.hostname)) return true;
+    // Wildcard match
+    return ALLOWED_HOSTNAME_PATTERNS.some((regex) => regex.test(url.hostname));
   } catch (e) {
     return false;
   }
 }
 
-// Helper for timeout
 function fetchWithTimeout(url, options, timeout = TIMEOUT_MS) {
   return Promise.race([
     fetch(url, options),
     new Promise((_, reject) => setTimeout(() => reject(new Error('Proxy timeout')), timeout)),
   ]);
+}
+
+function cleanHeaders(headers = {}) {
+  // Remove dangerous headers (case-insensitive)
+  const forbidden = ['host', 'x-forwarded-for', 'x-real-ip'];
+  const cleaned = {};
+  Object.keys(headers).forEach((key) => {
+    if (!forbidden.includes(key.toLowerCase())) {
+      cleaned[key] = headers[key];
+    }
+  });
+  return cleaned;
 }
 
 exports.handler = async function(event) {
@@ -43,44 +60,38 @@ exports.handler = async function(event) {
     };
   }
 
-  let body, url, method, headers;
   try {
-    // For security, require POST and JSON body with { url, method, headers, body }
     if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, body: 'Method Not Allowed' };
+      return {
+        statusCode: 405,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: 'Method Not Allowed'
+      };
     }
 
-    body = JSON.parse(event.body || '{}');
-    url = body.url;
-    method = (body.method || 'GET').toUpperCase();
-    headers = body.headers || {};
+    const body = JSON.parse(event.body || '{}');
+    const url = body.url;
+    const method = (body.method || 'GET').toUpperCase();
+    const headers = cleanHeaders(body.headers || {});
     const requestBody = body.body;
 
     if (!url || !isAllowed(url)) {
-      return { statusCode: 400, body: 'Invalid or unauthorized target URL.' };
+      return {
+        statusCode: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: 'Invalid or unauthorized target URL.'
+      };
     }
 
-    // Remove any headers that could be dangerous
-    delete headers['host'];
-    delete headers['x-forwarded-for'];
-    delete headers['x-real-ip'];
-
-    // Make proxied request
     const resp = await fetchWithTimeout(url, {
       method,
       headers,
       body: ['POST','PUT','PATCH'].includes(method) ? requestBody : undefined,
     });
 
-    let respBody;
     const contentType = resp.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      respBody = await resp.text(); // Don't double-encode JSON
-    } else {
-      respBody = await resp.text();
-    }
+    let respBody = await resp.text();
 
-    // Pass through CORS
     return {
       statusCode: resp.status,
       headers: {
