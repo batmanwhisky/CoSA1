@@ -163,15 +163,30 @@
         ts: m.ts
       }))
     };
-    const response = await fetch('https://cosa1.netlify.app/.netlify/functions/', {
+    // Replace 'chatbot' with your actual Netlify Function name
+    const FUNCTION_NAME = 'proxy'; // <-- change this if your function is named differently
+    const response = await fetch(`https://cosa1.netlify.app/.netlify/functions/${FUNCTION_NAME}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if (!response.ok) throw new Error('Network error');
-    const data = await response.json();
-    if (data && data.reply) return data.reply;
-    if (typeof data === 'string') return data;
-    throw new Error('No response from backend');
+    // Try to extract a message from the backend, even when error status
+    let data, raw;
+    try {
+      raw = await response.text();
+      data = JSON.parse(raw);
+    } catch {
+      data = null;
+    }
+    if (response.ok) {
+      if (data && data.reply) return data.reply;
+      if (typeof data === 'string') return data;
+      if (raw) return raw;
+      throw new Error('No response from backend');
+    } else {
+      // Attempt to show backend error message if available
+      if (data && data.error) throw new Error(data.error);
+      throw new Error('Network error');
+    }
   }
 })();
