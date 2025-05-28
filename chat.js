@@ -6,6 +6,11 @@
   const loading = document.getElementById('chat-loading');
   const clearBtn = document.getElementById('clear-chat');
 
+  // Default Netlify function name (set to "proxy")
+  let functionName = 'proxy';
+  // Optionally, allow dynamic override:
+  // functionName = document.body.dataset.functionName || 'proxy';
+
   // Conversation persists for the session
   let conversation = loadConversation();
 
@@ -32,7 +37,7 @@
     autoGrow({ target: chatInput });
     showLoading(true);
     chatForm.querySelector('button').disabled = true;
-    sendToBackend(conversation)
+    sendToBackend(conversation, functionName)
       .then(botReply => {
         addMessage(botReply, 'bot');
       })
@@ -155,7 +160,7 @@
   }
 
   // Send to backend with conversation context
-  async function sendToBackend(convo) {
+  async function sendToBackend(convo, funcName) {
     const payload = {
       conversation: convo.map(m => ({
         role: m.sender === 'user' ? 'user' : 'assistant',
@@ -163,9 +168,9 @@
         ts: m.ts
       }))
     };
-    // Replace 'chatbot' with your actual Netlify Function name
-    const FUNCTION_NAME = 'proxy'; // <-- change this if your function is named differently
-    const response = await fetch(`https://cosa1.netlify.app/.netlify/functions/${FUNCTION_NAME}`, {
+    // Allow dynamic function name
+    if (!funcName) throw new Error('Function name not set');
+    const response = await fetch(`https://cosa1.netlify.app/.netlify/functions/${encodeURIComponent(funcName)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -189,4 +194,11 @@
       throw new Error('Network error');
     }
   }
+
+  // Expose a setter for dynamic functionName usage
+  window.setChatFunctionName = function(newName) {
+    if (typeof newName === 'string' && newName.trim()) {
+      functionName = newName.trim();
+    }
+  };
 })();
