@@ -5,6 +5,7 @@ const ALLOWED_HOSTNAMES = [
   'cosa1.netlify.app',
   'sheets.googleapis.com',
   'sanantonio.gov',
+  
   // Add more domains as needed
 ];
 
